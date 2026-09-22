@@ -1,0 +1,22 @@
+[Unit]
+Description=MLB Polymarket fair-price paper bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/opt/mlb-poly
+EnvironmentFile=/var/lib/trading-bots/mlb-poly/.env
+Environment=PYTHONUNBUFFERED=1
+Environment=DB_PATH=/var/lib/trading-bots/mlb-poly/mlb_poly.sqlite
+ExecStart=/usr/bin/python3 -u /opt/mlb-poly/mlb_poly.py
+Restart=always
+RestartSec=30
+KillMode=mixed
+TimeoutStopSec=20
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
