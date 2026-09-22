@@ -603,12 +603,18 @@ class Bot:
         LOG.info("ledger total=%d open=%d resolved=%d pnl=$%+.2f roi=%.2f%%", stats.get("total", 0), stats.get("open_count", 0), stats.get("resolved", 0), f(stats.get("pnl")), 100 * f(stats.get("roi")))
         return resolved, taken
 
-    def run(self, once: bool) -> None:
+    def run(self, once: bool) -> bool:
+        successful = True
         while not self.stop:
-            self.cycle()
+            try:
+                self.cycle()
+            except Exception as exc:
+                successful = False
+                LOG.error("cycle failed: %s", exc)
             if once:
-                return
+                return successful
             time.sleep(max(self.config.poll_seconds, 1))
+        return successful
 
 
 def main() -> int:
@@ -629,10 +635,9 @@ def main() -> int:
     signal.signal(signal.SIGINT, bot.request_stop)
     signal.signal(signal.SIGTERM, bot.request_stop)
     try:
-        bot.run(args.once)
+        return 0 if bot.run(args.once) else 1
     finally:
         ledger.close()
-    return 0
 
 
 if __name__ == "__main__":
